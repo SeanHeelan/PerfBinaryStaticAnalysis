@@ -41,11 +41,12 @@ macro_fusable_ids = set([
     x86.X86_INS_CMP, x86.X86_INS_TEST, x86.X86_INS_ADD,
     x86.X86_INS_SUB, x86.X86_INS_AND, x86.X86_INS_INC, x86.X86_INS_DEC])
 
+
 @dataclass(frozen=True)
 class IntelJCCErratumResult:
     """Represents an instance of a jump (or jump-like instruction, or
     macro-fused op+jump pair) that crosses a 32-byte boundary and thus
-    will not be placed int he DecodedICache.
+    will not be placed in the DecodedICache.
     """
     function_start_address: int
     loop_start_address: int
@@ -54,6 +55,7 @@ class IntelJCCErratumResult:
     def __str__(self):
         return f"Result(function=0x{self.function_start_address:08x}, " \
             f"jump=0x{self.jump_address:08x})"
+
 
 def ins_matches_ret_conditions(
     ins: cs.CsInsn, addr: int, ins_len: int) -> bool:
