@@ -5,7 +5,6 @@ instructions that will not be placed into the DecodedICache.
 [1] https://www.intel.com/content/dam/support/us/en/documents/processors/mitigations-jump-conditional-code-erratum.pdf
 """
 
-from hashlib import new
 import sys
 from typing import List
 
@@ -76,7 +75,7 @@ def ins_matches_jcc_conditions(
         return True
 
     # Crosses 32b boundary
-    for x in range(addr, addr+ins_len):
+    for x in range(addr+1, addr+ins_len):
         if x % 32 == 0:
             return True
 
@@ -89,14 +88,15 @@ def ins_matches_jcc_conditions(
         return True
 
     # Fusable op crosses on 32b boundary
-    for x in range(prev_addr, prev_addr+prev_len):
+    for x in range(prev_addr+1, prev_addr+prev_len):
         if x % 32 == 0:
             return True
 
     return False
 
 
-def ins_matches_jmp_conditions(ins: cs.CsInsn, addr: int, ins_len: int) -> bool:
+def ins_matches_jmp_conditions(
+        ins: cs.CsInsn, addr: int, ins_len: int) -> bool:
     if ins.id != x86.X86_INS_JMP:
         return False
 
@@ -105,7 +105,7 @@ def ins_matches_jmp_conditions(ins: cs.CsInsn, addr: int, ins_len: int) -> bool:
         return True
 
     # Crosses 32b boundary
-    for x in range(addr, addr+ins_len):
+    for x in range(addr+1, addr+ins_len):
         if x % 32 == 0:
             return True
 
@@ -133,7 +133,7 @@ def intel_jcc_erratum_analysis(
         elif ins_matches_jmp_conditions(ins, addr, ins_len):
             found = True
         elif ins_matches_jcc_conditions(
-            ins, addr, ins_len, prev_ins, prev_addr, prev_ins_len):
+                ins, addr, ins_len, prev_ins, prev_addr, prev_ins_len):
             found = True
 
         if found is True:
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     with binaryninja.open_view(target_binary) as bv:
         for f in bv.functions:
             new_results = intel_jcc_erratum_analysis(f)
-            if len(new_results):
+            if new_results:
                 print(f)
                 for nr in new_results:
                     print(f"\t{nr}")
